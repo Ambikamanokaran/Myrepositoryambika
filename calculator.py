@@ -1,186 +1,98 @@
-"""calculator.py
-
-A simple and safe command-line calculator.
-
-Features:
-- Evaluate arithmetic expressions entered by the user (supports +, -, *,, /, %, **, parentheses)
-- Supports math functions: sin, cos, tan, sqrt, log, log10, exp, floor, ceil, factorial
-- Prevents arbitrary code execution by parsing expressions with ast and whitelisting nodes
-- Usage:
-    python calculator.py           # interactive REPL
-    python calculator.py "2+2*3"  # evaluate single expression and exit
-
+#!/usr/bin/env python3
 """
-import ast
-import operator as op
-import math
-import sys
+A simple Python calculator with basic arithmetic operations.
+"""
 
-# Allowed binary operators
-BIN_OPS = {
-    ast.Add: op.add,
-    ast.Sub: op.sub,
-    ast.Mult: op.mul,
-    ast.Div: op.truediv,
-    ast.FloorDiv: op.floordiv,
-    ast.Mod: op.mod,
-    ast.Pow: op.pow,
-}
-
-# Allowed unary operators
-UNARY_OPS = {
-    ast.UAdd: lambda x: +x,
-    ast.USub: lambda x: -x,
-}
-
-# Whitelisted math functions
-SAFE_FUNCS = {
-    'sin': math.sin,
-    'cos': math.cos,
-    'tan': math.tan,
-    'sqrt': math.sqrt,
-    'log': math.log,       # natural log: log(x, base) supported if 2 args
-    'log10': math.log10,
-    'exp': math.exp,
-    'floor': math.floor,
-    'ceil': math.ceil,
-    'factorial': math.factorial,
-    'abs': abs,
-    'round': round,
-}
-
-# Allowed names/constants
-SAFE_NAMES = {
-    'pi': math.pi,
-    'e': math.e,
-}
+def add(a, b):
+    """Add two numbers."""
+    return a + b
 
 
-class CalcEvaluator(ast.NodeVisitor):
-    """Evaluate a math expression AST safely."""
-
-    def visit(self, node):
-        # Override to raise on disallowed nodes early
-        method = 'visit_' + node.__class__.__name__
-        visitor = getattr(self, method, None)
-        if visitor is None:
-            raise ValueError(f"Unsupported expression: {node.__class__.__name__}")
-        return visitor(node)
-
-    def visit_Module(self, node):
-        if len(node.body) != 1 or not isinstance(node.body[0], ast.Expr):
-            raise ValueError("Only single expressions are allowed")
-        return self.visit(node.body[0].value)
-
-    def visit_Expr(self, node):
-        return self.visit(node.value)
-
-    def visit_BinOp(self, node):
-        left = self.visit(node.left)
-        right = self.visit(node.right)
-        op_type = type(node.op)
-        if op_type in BIN_OPS:
-            try:
-                return BIN_OPS[op_type](left, right)
-            except Exception as e:
-                raise ValueError(f"Error during binary operation: {e}")
-        raise ValueError(f"Unsupported binary operator: {op_type.__name__}")
-
-    def visit_UnaryOp(self, node):
-        operand = self.visit(node.operand)
-        op_type = type(node.op)
-        if op_type in UNARY_OPS:
-            return UNARY_OPS[op_type](operand)
-        raise ValueError(f"Unsupported unary operator: {op_type.__name__}")
-
-    def visit_Num(self, node):
-        return node.n
-
-    def visit_Constant(self, node):
-        if isinstance(node.value, (int, float)):
-            return node.value
-        raise ValueError(f"Unsupported constant type: {type(node.value).__name__}")
-
-    def visit_Name(self, node):
-        if node.id in SAFE_NAMES:
-            return SAFE_NAMES[node.id]
-        raise ValueError(f"Unknown identifier: {node.id}")
-
-    def visit_Call(self, node):
-        if not isinstance(node.func, ast.Name):
-            raise ValueError("Only simple function calls allowed")
-        func_name = node.func.id
-        if func_name not in SAFE_FUNCS:
-            raise ValueError(f"Function not allowed: {func_name}")
-        func = SAFE_FUNCS[func_name]
-        args = [self.visit(a) for a in node.args]
-        try:
-            return func(*args)
-        except Exception as e:
-            raise ValueError(f"Error in function call {func_name}: {e}")
-
-    # Disallow attribute access, subscripting, comprehensions, etc.
-    def generic_visit(self, node):
-        raise ValueError(f"Unsupported expression element: {node.__class__.__name__}")
+def subtract(a, b):
+    """Subtract two numbers."""
+    return a - b
 
 
-def safe_eval(expr: str):
-    """Safely evaluate a math expression string and return a number.
-
-    Raises ValueError on invalid or unsafe expressions.
-    """
-    try:
-        tree = ast.parse(expr, mode='exec')
-    except SyntaxError as e:
-        raise ValueError(f"Syntax error: {e}")
-    evaluator = CalcEvaluator()
-    return evaluator.visit(tree)
+def multiply(a, b):
+    """Multiply two numbers."""
+    return a * b
 
 
-def repl():
-    print("Welcome to calculator.py — safe arithmetic REPL")
-    print("Type 'help' for usage, 'quit' or 'exit' to leave.")
+def divide(a, b):
+    """Divide two numbers."""
+    if b == 0:
+        return "Error: Division by zero"
+    return a / b
+
+
+def power(a, b):
+    """Raise a number to a power."""
+    return a ** b
+
+
+def square_root(a):
+    """Calculate the square root of a number."""
+    if a < 0:
+        return "Error: Cannot calculate square root of negative number"
+    return a ** 0.5
+
+
+def calculator():
+    """Main calculator function with user interface."""
+    print("=" * 50)
+    print("        PYTHON CALCULATOR")
+    print("=" * 50)
+    print("\nAvailable operations:")
+    print("1. Add (+)")
+    print("2. Subtract (-)")
+    print("3. Multiply (*)")
+    print("4. Divide (/)")
+    print("5. Power (**)")
+    print("6. Square Root (sqrt)")
+    print("7. Exit")
+    print("-" * 50)
+    
     while True:
-        try:
-            s = input('> ').strip()
-        except (EOFError, KeyboardInterrupt):
-            print()
+        choice = input("\nEnter operation (1/2/3/4/5/6/7): ").strip()
+        
+        if choice == '7':
+            print("\nThank you for using the calculator!")
             break
-        if not s:
+        
+        if choice == '6':
+            try:
+                num = float(input("Enter a number: "))
+                result = square_root(num)
+                print(f"√{num} = {result}")
+            except ValueError:
+                print("Error: Please enter a valid number")
             continue
-        if s.lower() in ('quit', 'exit'):
-            break
-        if s.lower() in ('help', '?'):
-            print_help()
-            continue
-        try:
-            result = safe_eval(s)
-            print(result)
-        except Exception as e:
-            print(f"Error: {e}")
+        
+        if choice in ['1', '2', '3', '4', '5']:
+            try:
+                num1 = float(input("Enter first number: "))
+                num2 = float(input("Enter second number: "))
+                
+                if choice == '1':
+                    result = add(num1, num2)
+                    print(f"{num1} + {num2} = {result}")
+                elif choice == '2':
+                    result = subtract(num1, num2)
+                    print(f"{num1} - {num2} = {result}")
+                elif choice == '3':
+                    result = multiply(num1, num2)
+                    print(f"{num1} * {num2} = {result}")
+                elif choice == '4':
+                    result = divide(num1, num2)
+                    print(f"{num1} / {num2} = {result}")
+                elif choice == '5':
+                    result = power(num1, num2)
+                    print(f"{num1} ** {num2} = {result}")
+            except ValueError:
+                print("Error: Please enter valid numbers")
+        else:
+            print("Error: Invalid choice. Please enter a number between 1 and 7")
 
 
-def print_help():
-    print("Enter arithmetic expressions using +, -, *, /, %, ** and parentheses.")
-    print("Allowed functions: " + ', '.join(sorted(SAFE_FUNCS.keys())))
-    print("Constants: " + ', '.join(f"{k}={v}" for k, v in SAFE_NAMES.items()))
-    print("Examples:")
-    print("  2 + 2 * 3")
-    print("  sqrt(2) + sin(pi/4)")
-    print("  factorial(5)")
-
-
-def main():
-    if len(sys.argv) > 1:
-        expr = ' '.join(sys.argv[1:])
-        try:
-            print(safe_eval(expr))
-        except Exception as e:
-            print(f"Error: {e}")
-            sys.exit(2)
-        return
-    repl()
-
-
-if __name__ == '__main__':
-    main()
+if __name__ == "__main__":
+    calculator()
